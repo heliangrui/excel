@@ -3,6 +3,7 @@ package excel
 import (
 	"bufio"
 	"fmt"
+	"github.com/xuri/excelize/v2"
 	"io"
 	"os"
 	"reflect"
@@ -19,9 +20,8 @@ type Excel[T any] struct {
 	err           error
 }
 
-func (e *Excel[T]) NewExcel(fileName string, sheetName string, t T) *Excel[T] {
+func (e *Excel[T]) NewExcelExport(sheetName string, t T) *Excel[T] {
 	e.t = t
-	e.fileName = fileName
 	e.sheetName = sheetName
 	e.mod = *getInterfaceExcelModel(t)
 	e.f = excelize.NewFile()
@@ -63,16 +63,22 @@ func (e *Excel[T]) ExportSmallExcelByStruct(object []T) *Excel[T] {
 }
 
 func (e *Excel[T]) ExportData(object []T, start int) *Excel[T] {
-	for i := start; i < len(object); i++ {
+	for i := 0; i < len(object); i++ {
 		mod := object[i]
 		value := reflect.ValueOf(mod)
 		for r := 0; r < len(e.mod); r++ {
 			fieldName := e.mod[r].fieldName
 			nowValue := value.FieldByName(fieldName)
 			name, _ := excelize.ColumnNumberToName(r + 1)
-			s := name + strconv.Itoa(i)
-			_ = e.f.SetCellValue(e.sheetName, s, nowValue)
+			s := name + strconv.Itoa(i+start)
 
+			if e.mod[r].toExcelFormat == "" {
+				_ = e.f.SetCellValue(e.sheetName, s, nowValue)
+			} else {
+				toExcelFun := value.MethodByName(e.mod[r].toExcelFormat)
+				call := toExcelFun.Call(nil)
+				_ = e.f.SetCellValue(e.sheetName, s, call[0])
+			}
 		}
 	}
 	return e
@@ -85,13 +91,15 @@ func (e *Excel[T]) WriteInWriter(writer io.Writer) {
 	}
 }
 
-func (e *Excel[T]) WriteInFileName(resultFile string) {
-	file, err := os.OpenFile(resultFile, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, os.ModeDevice)
+func (e *Excel[T]) WriteInFileName(resultFile string) *Excel[T] {
+	file, err := os.OpenFile(resultFile, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, os.ModeDevice|os.ModePerm)
+	defer file.Close()
 	if err == nil {
 		writer := bufio.NewWriter(file)
 		err = e.f.Write(writer)
 	}
 	e.err = err
+	return e
 }
 
 func (e *Excel[T]) Close() {

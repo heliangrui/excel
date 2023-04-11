@@ -6,20 +6,22 @@ import (
 	"strconv"
 )
 
-var DefaultSheet = "sheet1"
+var DefaultSheet = "Sheet1"
 
 /*
 *
 自定义tag
 excelName
 excelIndex
-//excelFormat  暂未实现
+toExcelFormat
+toDataFormat
 excelColWidth
 */
 type model struct {
 	excelName     string
 	excelIndex    int
-	excelFormat   string
+	toExcelFormat string
+	toDataFormat  string
 	excelColWidth int
 	fieldName     string
 }
@@ -42,7 +44,8 @@ func getInterfaceExcelModel(face interface{}) *[]model {
 				}
 			}
 			name := field.Field(i).Name
-			format := tag.Get("excelFormat")
+			toExcelFormat := tag.Get("toExcelFormat")
+			toDataFormat := tag.Get("toDataFormat")
 			widthString := tag.Get("excelColWidth")
 			var width int
 			if widthString != "" {
@@ -53,7 +56,7 @@ func getInterfaceExcelModel(face interface{}) *[]model {
 			} else {
 				width = len(excelName) * 3
 			}
-			m = append(m, model{excelName, index, format, width, name})
+			m = append(m, model{excelName, index, toExcelFormat, toDataFormat, width, name})
 		}
 	}
 	// 排序
