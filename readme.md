@@ -12,8 +12,8 @@
 ```
 type NameStruct struct{
 	Name string `excelName:"姓名" excelIndex:"1" excelColWidth:"30"`
-	Age string `excelName:"姓名" excelIndex:"3"`
-	Sex int `excelName:"姓名" excelIndex:"1" toExcelFormat:"ToExcelSexFormat"`
+	Age string `excelName:"年龄" excelIndex:"3"`
+	Sex int `excelName:"性别" excelIndex:"1" toExcelFormat:"ToExcelSexFormat"`
 }
 
 func (n NameStruct) ToExcelSexFormat() string{
