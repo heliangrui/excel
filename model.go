@@ -24,6 +24,7 @@ type model struct {
 	toDataFormat  string
 	excelColWidth int
 	fieldName     string
+	fieldIndex    int
 }
 
 // 根据类型获取打印相关内容
@@ -56,7 +57,7 @@ func getInterfaceExcelModel(face interface{}) *[]model {
 			} else {
 				width = len(excelName) * 3
 			}
-			m = append(m, model{excelName, index, toExcelFormat, toDataFormat, width, name})
+			m = append(m, model{excelName, index, toExcelFormat, toDataFormat, width, name, 0})
 		}
 	}
 	// 排序

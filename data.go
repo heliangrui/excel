@@ -5,7 +5,7 @@ import (
 	"strconv"
 )
 
-func (e *Excel[T]) createHead() {
+func (e *Export[T]) createHead() {
 	for r := 0; r < len(e.mod); r++ {
 		name, err := excelize.ColumnNumberToName(r + 1)
 		if err != nil {
