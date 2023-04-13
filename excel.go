@@ -46,14 +46,11 @@ func (e *Import[T]) newExcelImportWriter(reader io.Reader, readSheetName string,
 	return e
 }
 
-func (e *Import[T]) importDataToStruct() ([]T, error) {
-	defer e.Close()
-	var result []T
-
+func (e *Import[T]) importRead(fu func(row T)) *Import[T] {
 	rows, err := e.f.Rows(e.sheetName)
 	if err != nil {
 		e.err = err
-		return result, e.err
+		return e
 	}
 	firstRow := true
 	for rows.Next() {
@@ -104,10 +101,18 @@ func (e *Import[T]) importDataToStruct() ([]T, error) {
 				}
 			}
 			temResult := value.Interface().(T)
-			result = append(result, temResult)
+			fu(temResult)
 		}
 	}
-	return result, e.err
+	return e
+
+}
+
+func (e *Import[T]) importDataToStruct(t *[]T) *Import[T] {
+	e.importRead(func(row T) {
+		*t = append(*t, row)
+	})
+	return e
 }
 
 func (e *Export[T]) newExcelExport(sheetName string, t T) *Export[T] {

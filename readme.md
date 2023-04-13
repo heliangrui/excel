@@ -29,19 +29,15 @@ func (n NameStruct) ToExcelSexFormat() string{
 func main() {
     //创建数据源
 	data := createData()
-    //创建导出对象
-	e2 := Excel[NameStruct]{}
-	//导出
-	err := e2.NewExcelExport("hlr", NameStruct{}).ExportSmallExcelByStruct(data).WriteInFileName("111.xlsx").Error()
+	//创建导出对象
+	export := excel.NewExcelExport("test", NameStruct{})
 	//销毁对象
-	defer e2.Close()
-	
-	if err == nil {
-		fmt.Println("生成成功")
-	} else {
-		fmt.Println("生成失败")
+	defer export.Close()
+	//导出
+	err = export.ExportSmallExcelByStruct(data).WriteInFileName("test.xlsx").Error()
+	if err != nil {
+		fmt.Println("生成失败", err.Error())
 	}
-
 }
 
 func createData() []NameStruct {
@@ -50,6 +46,39 @@ func createData() []NameStruct {
 		names = append(names, NameStruct{name: "hlr" + strconv.Itoa(i), age: strconv.Itoa(i),Sex: i})
 	}
 	return names
+}
+
+```
+
+
+### 导入
+```
+func main() {
+
+    
+    //接受数据
+    var result []NameStruct
+    //创建导入对象
+	importFile := excel.NewExcelImportFile("111.xlsx", NameStruct{})
+	//对象销毁
+	defer importFile.Close()
+	
+	// 方式一
+	//数据填充 
+	err := importFile.ImportDataToStruct(&result).Error()
+    //数据显示
+	if err != nil {
+		fmt.Println("生成失败", err.Error())
+	} else {
+		marshal, _ := json.Marshal(result)
+		fmt.Println(string(marshal))
+	}
+    
+    // 方式二 逐行遍历
+    err := importFile.ImportRead(func(row NameStruct) {
+		fmt.Println(row.Name)
+	}).Error()
+    
 }
 
 ```

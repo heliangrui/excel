@@ -20,8 +20,27 @@ func NewExcelImportFile[T any](fileName string, t T) *Import[T] {
 	return e.newExcelImportFile(fileName, "", t)
 }
 
-func (e *Import[T]) ImportDataToStruct() ([]T, error) {
-	return e.importDataToStruct()
+func NewExcelImportWriter[T any](reader io.Reader, t T) *Import[T] {
+	e := Import[T]{}
+	return e.newExcelImportWriter(reader, "", t)
+}
+
+func NewExcelImportSheetFile[T any](fileName string, sheetName string, t T) *Import[T] {
+	e := Import[T]{}
+	return e.newExcelImportFile(fileName, sheetName, t)
+}
+
+func NewExcelImportSheetWriter[T any](reader io.Reader, sheetName string, t T) *Import[T] {
+	e := Import[T]{}
+	return e.newExcelImportWriter(reader, sheetName, t)
+}
+
+func (e *Import[T]) ImportRead(fu func(row T)) *Import[T] {
+	return e.importRead(fu)
+}
+
+func (e *Import[T]) ImportDataToStruct(t *[]T) *Import[T] {
+	return e.importDataToStruct(t)
 }
 
 // NewExcelExport 导出初始化
