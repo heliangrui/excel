@@ -1,4 +1,4 @@
-module excel
+module github.com/heliangrui/excel
 
 go 1.20
 
