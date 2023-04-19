@@ -71,7 +71,7 @@ func (e *Import[T]) importRead(fu func(row T)) *Import[T] {
 
 			for _, m := range *e.mod {
 				item := ""
-				if m.fieldIndex < len(columns) {
+				if m.fieldIndex < len(columns) && m.fieldIndex > -1 {
 					item = columns[m.fieldIndex]
 				}
 

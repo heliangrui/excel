@@ -57,7 +57,7 @@ func getInterfaceExcelModel(face interface{}) *[]*model {
 			} else {
 				width = len(excelName) * 3
 			}
-			m = append(m, &model{excelName, index, toExcelFormat, toDataFormat, width, name, 0})
+			m = append(m, &model{excelName, index, toExcelFormat, toDataFormat, width, name, -1})
 		}
 	}
 	// 排序
