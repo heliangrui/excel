@@ -15,7 +15,7 @@ type excelModel[T any] struct {
 	sheetName     string
 	f             *excelize.File
 	t             T
-	mod           []model
+	mod           *[]*model
 	headRowHeight int
 	err           error
 }
@@ -32,7 +32,7 @@ func (e *Import[T]) newExcelImportFile(fileName string, readSheetName string, t 
 }
 
 func (e *Import[T]) newExcelImportWriter(reader io.Reader, readSheetName string, t T) *Import[T] {
-	e.mod = *getInterfaceExcelModel(t)
+	e.mod = getInterfaceExcelModel(t)
 	openReader, err := excelize.OpenReader(reader)
 	if err != nil {
 		e.err = err
@@ -57,7 +57,7 @@ func (e *Import[T]) importRead(fu func(row T)) *Import[T] {
 		columns, _ := rows.Columns()
 		if firstRow {
 			for i := 0; i < len(columns); i++ {
-				for _, m := range e.mod {
+				for _, m := range *e.mod {
 					if columns[i] == m.excelName {
 						m.fieldIndex = i
 						break
@@ -69,8 +69,12 @@ func (e *Import[T]) importRead(fu func(row T)) *Import[T] {
 			value := reflect.New(reflect.TypeOf(&e.t).Elem())
 			value = value.Elem()
 
-			for _, m := range e.mod {
-				item := columns[m.fieldIndex]
+			for _, m := range *e.mod {
+				item := ""
+				if m.fieldIndex < len(columns) {
+					item = columns[m.fieldIndex]
+				}
+
 				t := value.FieldByName(m.fieldName)
 
 				if m.toDataFormat != "" {
@@ -118,7 +122,7 @@ func (e *Import[T]) importDataToStruct(t *[]T) *Import[T] {
 func (e *Export[T]) newExcelExport(sheetName string, t T) *Export[T] {
 	e.t = t
 	e.sheetName = sheetName
-	e.mod = *getInterfaceExcelModel(t)
+	e.mod = getInterfaceExcelModel(t)
 	e.f = excelize.NewFile()
 	if sheetName != DefaultSheet {
 		_ = e.f.DeleteSheet(DefaultSheet)
@@ -148,7 +152,7 @@ func (e *Export[T]) setHeadStyle(style *excelize.Style) *Export[T] {
 	}
 	start, _ := excelize.ColumnNumberToName(1)
 	start += strconv.Itoa(1)
-	end, _ := excelize.ColumnNumberToName(len(e.mod))
+	end, _ := excelize.ColumnNumberToName(len(*e.mod))
 	end += strconv.Itoa(1)
 	err = e.f.SetCellStyle(e.sheetName, start, end, newStyle)
 	return e
@@ -158,16 +162,16 @@ func (e *Export[T]) exportData(object []T, start int) *Export[T] {
 	for i := 0; i < len(object); i++ {
 		mod := object[i]
 		value := reflect.ValueOf(mod)
-		for r := 0; r < len(e.mod); r++ {
-			fieldName := e.mod[r].fieldName
+		for r, m := range *e.mod {
+			fieldName := m.fieldName
 			nowValue := value.FieldByName(fieldName)
 			name, _ := excelize.ColumnNumberToName(r + 1)
 			s := name + strconv.Itoa(i+start)
 
-			if e.mod[r].toExcelFormat == "" {
+			if m.toExcelFormat == "" {
 				_ = e.f.SetCellValue(e.sheetName, s, nowValue)
 			} else {
-				toExcelFun := value.MethodByName(e.mod[r].toExcelFormat)
+				toExcelFun := value.MethodByName(m.toExcelFormat)
 				call := toExcelFun.Call(nil)
 				_ = e.f.SetCellValue(e.sheetName, s, call[0])
 			}

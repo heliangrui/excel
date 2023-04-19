@@ -6,13 +6,13 @@ import (
 )
 
 func (e *Export[T]) createHead() {
-	for r := 0; r < len(e.mod); r++ {
+	for r, m := range *e.mod {
 		name, err := excelize.ColumnNumberToName(r + 1)
 		if err != nil {
 			e.err = err
 		}
 		s := name + strconv.Itoa(1)
-		e.f.SetCellValue(e.sheetName, s, e.mod[r].excelName)
-		e.f.SetColWidth(e.sheetName, name, name, float64(e.mod[r].excelColWidth))
+		e.f.SetCellValue(e.sheetName, s, m.excelName)
+		e.f.SetColWidth(e.sheetName, name, name, float64(m.excelColWidth))
 	}
 }
