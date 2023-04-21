@@ -26,7 +26,7 @@ func main() {
 
 func testExport() {
 
-	data := createData(10000000)
+	data := createData(100000)
 	// 测试一次性导出
 	name := excel.NewExcelExport("domeSheet", ExportDeviceVo{}).ExportSmallExcelByStruct(data).WriteInFileName("testExport.xlsx")
 	defer name.Close()
