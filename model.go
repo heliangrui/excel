@@ -28,9 +28,9 @@ type model struct {
 }
 
 // 根据类型获取打印相关内容
-func getInterfaceExcelModel(face interface{}) *[]*model {
+func getInterfaceExcelModel(field reflect.Type) *[]*model {
 	m := make([]*model, 0)
-	field := reflect.TypeOf(face)
+
 	//获取tag 根据excelName 获取输出内容,根据 excelIndex 序号 excelFormat 格式化函数 excelColWidth 单元格宽度
 	for i := 0; i < field.NumField(); i++ {
 		tag := field.Field(i).Tag

@@ -8,16 +8,19 @@ import (
 	"os"
 	"reflect"
 	"strconv"
+	"sync"
 )
 
 type excelModel[T any] struct {
-	fileName      string
-	sheetName     string
-	f             *excelize.File
-	t             T
-	mod           *[]*model
-	headRowHeight int
-	err           error
+	fileName       string
+	sheetName      string
+	f              *excelize.File
+	mod            *[]*model
+	headRowHeight  int
+	totalRowHeight int
+	rt             reflect.Type
+	wg             sync.WaitGroup
+	err            error
 }
 
 func (e *Import[T]) newExcelImportFile(fileName string, readSheetName string, t T) *Import[T] {
@@ -32,7 +35,8 @@ func (e *Import[T]) newExcelImportFile(fileName string, readSheetName string, t 
 }
 
 func (e *Import[T]) newExcelImportWriter(reader io.Reader, readSheetName string, t T) *Import[T] {
-	e.mod = getInterfaceExcelModel(t)
+	e.rt = reflect.TypeOf(t)
+	e.mod = getInterfaceExcelModel(e.rt)
 	openReader, err := excelize.OpenReader(reader)
 	if err != nil {
 		e.err = err
@@ -66,7 +70,7 @@ func (e *Import[T]) importRead(fu func(row T)) *Import[T] {
 			}
 			firstRow = false
 		} else {
-			value := reflect.New(reflect.TypeOf(&e.t).Elem())
+			value := reflect.New(e.rt.Elem())
 			value = value.Elem()
 
 			for _, m := range *e.mod {
@@ -120,9 +124,10 @@ func (e *Import[T]) importDataToStruct(t *[]T) *Import[T] {
 }
 
 func (e *Export[T]) newExcelExport(sheetName string, t T) *Export[T] {
-	e.t = t
+
 	e.sheetName = sheetName
-	e.mod = getInterfaceExcelModel(t)
+	e.rt = reflect.TypeOf(t)
+	e.mod = getInterfaceExcelModel(e.rt)
 	e.f = excelize.NewFile()
 	if sheetName != DefaultSheet {
 		_ = e.f.DeleteSheet(DefaultSheet)
@@ -159,23 +164,33 @@ func (e *Export[T]) setHeadStyle(style *excelize.Style) *Export[T] {
 }
 
 func (e *Export[T]) exportData(object []T, start int) *Export[T] {
-	for i := 0; i < len(object); i++ {
+	obLen := len(object)
+	e.wg.Add(1)
+	e.setRowHeight(start, obLen)
+	for i := 0; i < obLen; i++ {
 		mod := object[i]
 		value := reflect.ValueOf(mod)
 		for r, m := range *e.mod {
 			fieldName := m.fieldName
 			nowValue := value.FieldByName(fieldName)
 			name, _ := excelize.ColumnNumberToName(r + 1)
-			s := name + strconv.Itoa(i+start)
-
+			s := name + strconv.Itoa(i+start+e.headRowHeight)
 			if m.toExcelFormat == "" {
-				_ = e.f.SetCellValue(e.sheetName, s, nowValue)
+				e.f.SetCellValue(e.sheetName, s, nowValue)
 			} else {
 				toExcelFun := value.MethodByName(m.toExcelFormat)
 				call := toExcelFun.Call(nil)
-				_ = e.f.SetCellValue(e.sheetName, s, call[0])
+				e.f.SetCellValue(e.sheetName, s, call[0])
 			}
 		}
 	}
+	e.wg.Done()
 	return e
+}
+
+func (e *Export[T]) setRowHeight(start int, obLen int) {
+	atPresentLen := start + obLen - 1
+	if e.totalRowHeight < atPresentLen {
+		e.totalRowHeight = atPresentLen
+	}
 }

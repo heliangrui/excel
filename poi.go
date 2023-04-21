@@ -54,26 +54,32 @@ func (e *Export[T]) SetHeadStyle(style *excelize.Style) *Export[T] {
 }
 
 func (e *Export[T]) ExportSmallExcelByStruct(object []T) *Export[T] {
-	return e.exportData(object, e.headRowHeight+1)
+	return e.exportData(object, 1)
 }
 
+// ExportData 指定位置导出 start 默认从1开始 1 数据开始的位置
 func (e *Export[T]) ExportData(object []T, start int) *Export[T] {
 	return e.exportData(object, start)
 }
 
-func (e *excelModel[T]) WriteInWriter(writer io.Writer) {
+func (e *excelModel[T]) WriteInWriter(writer io.Writer) *excelModel[T] {
+
+	e.wg.Wait()
 	err := e.f.Write(writer)
 	if err != nil {
 		e.err = err
 	}
+	return e
 }
 
 func (e *excelModel[T]) WriteInFileName(resultFile string) *excelModel[T] {
 	file, err := os.OpenFile(resultFile, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, os.ModeDevice|os.ModePerm)
 	defer file.Close()
+
 	if err == nil {
 		writer := bufio.NewWriter(file)
-		err = e.f.Write(writer)
+		e.WriteInWriter(writer)
+		writer.Flush()
 	}
 	e.err = err
 	return e
