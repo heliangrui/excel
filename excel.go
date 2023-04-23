@@ -176,11 +176,11 @@ func (e *Export[T]) exportData(object []T, start int) *Export[T] {
 			name, _ := excelize.ColumnNumberToName(r + 1)
 			s := name + strconv.Itoa(i+start+e.headRowHeight)
 			if m.toExcelFormat == "" {
-				e.f.SetCellValue(e.sheetName, s, nowValue)
+				go e.f.SetCellValue(e.sheetName, s, nowValue)
 			} else {
 				toExcelFun := value.MethodByName(m.toExcelFormat)
 				call := toExcelFun.Call(nil)
-				e.f.SetCellValue(e.sheetName, s, call[0])
+				go e.f.SetCellValue(e.sheetName, s, call[0])
 			}
 		}
 	}
