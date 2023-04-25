@@ -8,7 +8,6 @@ import (
 	"os"
 	"reflect"
 	"strconv"
-	"sync"
 )
 
 type excelModel[T any] struct {
@@ -19,7 +18,6 @@ type excelModel[T any] struct {
 	headRowHeight  int
 	totalRowHeight int
 	rt             reflect.Type
-	wg             sync.WaitGroup
 	err            error
 }
 
@@ -165,7 +163,6 @@ func (e *Export[T]) setHeadStyle(style *excelize.Style) *Export[T] {
 
 func (e *Export[T]) exportData(object []T, start int) *Export[T] {
 	obLen := len(object)
-	e.wg.Add(1)
 	e.setRowHeight(start, obLen)
 	for i := 0; i < obLen; i++ {
 		mod := object[i]
@@ -175,16 +172,16 @@ func (e *Export[T]) exportData(object []T, start int) *Export[T] {
 			nowValue := value.FieldByName(fieldName)
 			name, _ := excelize.ColumnNumberToName(r + 1)
 			s := name + strconv.Itoa(i+start+e.headRowHeight)
+
 			if m.toExcelFormat == "" {
-				go e.f.SetCellValue(e.sheetName, s, nowValue)
+				e.f.SetCellValue(e.sheetName, s, nowValue)
 			} else {
 				toExcelFun := value.MethodByName(m.toExcelFormat)
 				call := toExcelFun.Call(nil)
-				go e.f.SetCellValue(e.sheetName, s, call[0])
+				e.f.SetCellValue(e.sheetName, s, call[0])
 			}
 		}
 	}
-	e.wg.Done()
 	return e
 }
 

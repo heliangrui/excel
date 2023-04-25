@@ -63,8 +63,6 @@ func (e *Export[T]) ExportData(object []T, start int) *Export[T] {
 }
 
 func (e *excelModel[T]) WriteInWriter(writer io.Writer) *excelModel[T] {
-
-	e.wg.Wait()
 	err := e.f.Write(writer)
 	if err != nil {
 		e.err = err
