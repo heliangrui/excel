@@ -17,6 +17,7 @@ type excelModel[T any] struct {
 	mod            *[]*model
 	headRowHeight  int
 	totalRowHeight int
+	totalDataStyle *excelize.Style
 	rt             reflect.Type
 	err            error
 }
@@ -157,6 +158,26 @@ func (e *Export[T]) setHeadStyle(style *excelize.Style) *Export[T] {
 	start += strconv.Itoa(1)
 	end, _ := excelize.ColumnNumberToName(len(*e.mod))
 	end += strconv.Itoa(1)
+	err = e.f.SetCellStyle(e.sheetName, start, end, newStyle)
+	return e
+}
+
+func (e *Export[T]) setDataStyle(style *excelize.Style) *Export[T] {
+	e.totalDataStyle = style
+	return e
+}
+
+func (e *excelModel[T]) paddingDataStyle() *excelModel[T] {
+	newStyle, err := e.f.NewStyle(e.totalDataStyle)
+	if err != nil {
+		fmt.Println("样式创建失败！")
+		e.err = err
+	}
+	dataStart := e.headRowHeight + 1
+	start, _ := excelize.ColumnNumberToName(1)
+	start += strconv.Itoa(dataStart)
+	end, _ := excelize.ColumnNumberToName(len(*e.mod))
+	end += strconv.Itoa(e.headRowHeight + e.totalRowHeight)
 	err = e.f.SetCellStyle(e.sheetName, start, end, newStyle)
 	return e
 }

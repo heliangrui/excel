@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/heliangrui/excel"
+	"github.com/xuri/excelize/v2"
 	"strconv"
 	"time"
 )
@@ -28,7 +29,38 @@ func testExport() {
 
 	data := createData(100000)
 	// 测试一次性导出
-	name := excel.NewExcelExport("domeSheet", ExportDeviceVo{}).ExportSmallExcelByStruct(data).WriteInFileName("testExport.xlsx")
+	name := excel.NewExcelExport("domeSheet", ExportDeviceVo{}).ExportSmallExcelByStruct(data)
+
+	style := excelize.Style{
+		Border: []excelize.Border{
+			{Type: "left", Color: "050505", Style: 1},
+			{Type: "top", Color: "050505", Style: 1},
+			{Type: "bottom", Color: "050505", Style: 1},
+			{Type: "right", Color: "050505", Style: 1},
+		},
+		Fill: excelize.Fill{Type: "gradient", Color: []string{"#FFB6C1", "#FFB6C1"}, Shading: 1},
+		Font: nil,
+		Alignment: &excelize.Alignment{
+			Horizontal:      "center",
+			Indent:          1,
+			JustifyLastLine: true,
+			ReadingOrder:    0,
+			RelativeIndent:  1,
+			ShrinkToFit:     false,
+			TextRotation:    0,
+			Vertical:        "",
+			WrapText:        false,
+		},
+		Protection:    nil,
+		NumFmt:        0,
+		DecimalPlaces: 0,
+		CustomNumFmt:  nil,
+		Lang:          "",
+		NegRed:        false,
+	}
+
+	name.SetDataStyle(&style).WriteInFileName("testExport.xlsx")
+
 	defer name.Close()
 }
 

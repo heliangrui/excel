@@ -53,6 +53,10 @@ func (e *Export[T]) SetHeadStyle(style *excelize.Style) *Export[T] {
 	return e.setHeadStyle(style)
 }
 
+func (e *Export[T]) SetDataStyle(style *excelize.Style) *Export[T] {
+	return e.setDataStyle(style)
+}
+
 func (e *Export[T]) ExportSmallExcelByStruct(object []T) *Export[T] {
 	return e.exportData(object, 1)
 }
@@ -63,6 +67,7 @@ func (e *Export[T]) ExportData(object []T, start int) *Export[T] {
 }
 
 func (e *excelModel[T]) WriteInWriter(writer io.Writer) *excelModel[T] {
+	e.paddingDataStyle()
 	err := e.f.Write(writer)
 	if err != nil {
 		e.err = err
