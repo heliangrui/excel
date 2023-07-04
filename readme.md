@@ -1,13 +1,13 @@
 ## Go 单表头结构体导入导出
-首先感谢 github.com/xuri/excelize/v2 基础库对excel表格的支持,本文在此基础上进行功能的api扩展方便，（web/其他）有结构体导出与导入需求的封装优化,当前版本 [v0.0.2](https://github.com/heliangrui/excel/releases/tag/v0.0.2)
+首先感谢 github.com/xuri/excelize/v2 基础库对excel表格的支持,本文在此基础上进行功能的api扩展方便，（web/其他）有结构体导出与导入需求的封装优化,当前版本 [v0.0.4](https://github.com/heliangrui/excel/releases/tag/v0.0.4)
 ### 基本用法
 #### 安装
 ````
 go get github.com/heliangrui/excel
 ````
-当前版本v0.0.2，也可指定版本安装，以防版本变化
+当前版本v0.0.4，也可指定版本安装，以防版本变化
 ````
-go get github.com/heliangrui/excel@0.0.2
+go get github.com/heliangrui/excel@0.0.4
 ````
 #### 结构体标签
 
